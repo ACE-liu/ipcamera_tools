@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<opencv_storage>
+<new_ip>"192.168.10.18"</new_ip>
+<gateway>"192.168.10.1"</gateway>
+<exposureMode>0</exposureMode>
+<scenceSelect>1</scenceSelect>
+<FrameRate>15</FrameRate>
+<WDRSwitch>1</WDRSwitch>
+<WDRLevel>50</WDRLevel>
+<LDCSwitch>1</LDCSwitch>
+<LDCLevel>50</LDCLevel>
+<textstatus>0</textstatus>
+<timestatus>0</timestatus>
+<iprate>10</iprate>
+<resolution>"1280x720"</resolution>
+<payload>1</payload>
+</opencv_storage>

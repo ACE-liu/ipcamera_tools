@@ -89,3 +89,7 @@ build*/
 nonfacial/models/
 */models/
 execution/text2speech/tts.wav
+.kdev4
+buff.log
+*.kdev4
+upload

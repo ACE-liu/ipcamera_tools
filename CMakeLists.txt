@@ -9,23 +9,32 @@ include_directories(include/)
 INCLUDE_DIRECTORIES(/usr/include/curl)
 INCLUDE_DIRECTORIES(/usr/include/libxml2)
 
+set(head_libs "")
+
+find_package(OpenCV 3.3.1 REQUIRED)
+if(OpenCV_FOUND)
+    INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
+    list(APPEND head_libs ${OpenCV_LIBRARIES})
+endif(OpenCV_FOUND)
+
 link_directories(lib)
 set(inflib "libSearchDevice.a")
 
 file(GLOB srcs
      ipcam_config.cpp
      ip_cam_CGI.cpp
+     ipcam_settings.cpp
  )
  list(APPEND inflib "curl;xml2")
  add_library(${prj_name} ${srcs})
-target_link_libraries(${prj_name} ${inflib} pthread)
+target_link_libraries(${prj_name} ${inflib} ${head_libs} pthread)
 
 add_executable(${prj_name}ip main.cpp)
-target_link_libraries(${prj_name}ip ${prj_name} ${inflib} pthread)
+target_link_libraries(${prj_name}ip ${prj_name} ${inflib} ${head_libs} pthread)
 
 
-add_executable(${prj_name}update main_update.cpp ip_cam_CGI.cpp)
-target_link_libraries(${prj_name}update curl xml2)
+add_executable(${prj_name}update main_update.cpp ip_cam_CGI.cpp ipcam_settings.cpp)
+target_link_libraries(${prj_name}update ${head_libs} curl xml2)
 
 
 add_executable(bin_update main_bin_update.cpp)

@@ -359,7 +359,7 @@ bool iim_ego::capturer::IPcam_CGI::getStreamInfoMsg(const std::string& ipaddr, i
 
 }
 
-bool iim_ego::capturer::IPcam_CGI::setStreamInfoMsg(const std::string& ipaddr, const iim_ego::capturer::CGICamStreamInfo& info, const int nSlect[7])
+bool iim_ego::capturer::IPcam_CGI::setStreamInfoMsg(const std::string& ipaddr, const iim_ego::capturer::CGICamStreamInfo& info, const int nSlect[8])
 {
     if(ipaddr.empty())  
       return false;   
@@ -399,6 +399,11 @@ bool iim_ego::capturer::IPcam_CGI::setStreamInfoMsg(const std::string& ipaddr, c
    {
      url.append("&VideoQuality=");
      url+=std::to_string(info.VideoQuality);    
+   }
+    if(nSlect[7]==1)
+   {
+     url.append("&Resolution=");
+     url+=info.Resolution;    
    }
     bool ret=http_get_xmldata(url, data);
     if(!ret)
@@ -630,6 +635,11 @@ bool iim_ego::capturer::IPcam_CGI::getDetailMegByNode(xmlNodePtr& node, const st
 	      con=xmlNodeGetContent(node);
 	      data->VideoQuality= atoi(reinterpret_cast<char *>(con));
 	  }
+       else if(xmlStrcasecmp(node->name,BAD_CAST"Resolution")==0)
+	  {
+	      con=xmlNodeGetContent(node);
+	      data->Resolution= reinterpret_cast<char *>(con);
+	  }
 	  node=node->next; 
 	}
       }
@@ -787,6 +797,7 @@ void iim_ego::capturer::IPcam_CGI::log_params(const CGICamBasicInfo& basicinfo)
 
 void iim_ego::capturer::IPcam_CGI::log_params(const iim_ego::capturer::CGICamStreamInfo& streamInfo)
 {
+  std::cout<<"======== Resolution ="<<streamInfo.Resolution<<"\n";	
   printf("\n======== BitRate = %d \n",streamInfo.BitRate);	
   printf("======== BitType = %d \n",streamInfo.BitType);	
   printf("======== FrameRate = %d \n",streamInfo.FrameRate);	

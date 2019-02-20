@@ -56,6 +56,7 @@ int main(int argc, char **argv) {
 	   break;
 	}
     }
+    ipcam_config::dealloc();
     std::cout<<"退出！"<<std::endl;
     return 0;
 }

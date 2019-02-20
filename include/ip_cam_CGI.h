@@ -60,6 +60,7 @@ typedef struct
 	int Payload;
 	int StreamRateCut;
 	int VideoQuality;
+	std::string Resolution;
 }CGICamStreamInfo;
 
 
@@ -82,7 +83,7 @@ public:
     static bool getExposureMsg(const std::string &ipaddr,CGICamExposureInfo &info);
     static bool setExposureMsg(const std::string &ipaddr,const CGICamExposureInfo& info,const int nSelect[16]);
     static bool getStreamInfoMsg(const std::string &ipaddr,CGICamStreamInfo &info);
-    static bool setStreamInfoMsg(const std::string &ipaddr,const CGICamStreamInfo& info, const int nSelect[7]);
+    static bool setStreamInfoMsg(const std::string &ipaddr,const CGICamStreamInfo& info, const int nSelect[8]);
     
     static bool getDeviceInfo(std::string const& ipaddr);
     

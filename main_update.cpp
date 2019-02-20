@@ -1,22 +1,55 @@
 #include "include/ip_cam_CGI.h"
 #include <string.h>
+#include "include/ipcam_settings.h"
 
 
+static ipcam_settings *settings=NULL;
 namespace
 {
-    const char *new_ip="192.168.10.18";
-    const char *gateway="192.168.10.1";
-    const int  exposureMode=0;
-    const int scenceSelect=1;
-    const int FrameRate=15;
-    const int WDRSwitch=1; //kuandongtai
-    const int WDRLevel=50;
-    const int LDCSwitch=1; //jibianjiaozheng
-    const int LDCLevel=50;
-    const int textstatus=0;
-    const int timestatus=0;
+    char new_ip[64]="192.168.10.18";
+    char gateway[64]="192.168.10.1";
+    int  exposureMode=0;
+    int scenceSelect=1;
+    int FrameRate=15;
+    int WDRSwitch=1; //kuandongtai
+    int WDRLevel=50;
+    int LDCSwitch=1; //jibianjiaozheng
+     int LDCLevel=50;
+     int textstatus=0;
+     int timestatus=0;
     
-    const int iprate=10;
+     int iprate=10;
+     std::string resolution ="1280x720";
+     int payload =1;
+}
+
+static void load_settings()
+{
+   std::cout<<"before: "<<new_ip<<" "<<gateway<<std::endl;
+   std::string fileName="./ipcamera_cfg.xml";
+   settings=new ipcam_settings(fileName);
+   strcpy(new_ip,settings->new_ip.c_str());
+   strcpy(gateway,settings->gateway.c_str());
+   exposureMode=settings->exposureMode;
+   scenceSelect=settings->scenceSelect;
+   FrameRate=settings->FrameRate;
+   WDRSwitch=settings->WDRSwitch;
+   WDRLevel=settings->WDRLevel;
+   LDCSwitch=settings->LDCSwitch;
+   LDCLevel=settings->LDCLevel;
+   textstatus=settings->textstatus;
+   timestatus=settings->timestatus;
+   iprate=settings->iprate;
+   resolution=settings->resolution;
+   payload=settings->payload;
+}
+static void dealloc()
+{
+ if(settings!=NULL)
+ {
+    delete settings;
+    settings=NULL;
+}
 }
 
 static bool set_expos_ScenceSelect(const char *ipaddr,int exposureMode, int scenceSelect)
@@ -28,13 +61,16 @@ static bool set_expos_ScenceSelect(const char *ipaddr,int exposureMode, int scen
   cgiInfo.scenceSelect = scenceSelect;
   return iim_ego::capturer::IPcam_CGI::setExposureMsg(ipaddr,cgiInfo,nSlect);  
 }
-static bool setFrameRate(const char *ipaddr,int frameRate)
+static bool setstreamMsg(const char *ipaddr,std::string resolution,int iprate,int payload, int frameRate)
 {
   bool ret;
   iim_ego::capturer::CGICamStreamInfo cgiInfo;
   memset(&cgiInfo, 0x00, sizeof(iim_ego::capturer::CGICamStreamInfo));
-  int nSlect[7] = {0,0,1,0,0,0,0};	
+  int nSlect[8] = {0,0,1,1,1,0,0,1};	
   cgiInfo.FrameRate = frameRate;
+  cgiInfo.Payload=payload;
+  cgiInfo.IPRate=iprate;
+  cgiInfo.Resolution=resolution;
   return iim_ego::capturer::IPcam_CGI::setStreamInfoMsg(ipaddr,cgiInfo,nSlect);
 }
 
@@ -94,13 +130,13 @@ static bool config_new_ip_camera()
 }
 else
     std::cout<<"设置相机曝光模式 和场景成功."<<std::endl;
-   if(!setFrameRate(new_ip,FrameRate))
+   if(!setstreamMsg(new_ip,resolution,iprate,payload,FrameRate))
    {
-	std::cout<<"设置相机framerate失败."<<std::endl;
+	std::cout<<"设置相机rtsp流相关失败."<<std::endl;
 	ret =false;
 }
 else
-    std::cout<<"设置相机framerate成功."<<std::endl;	
+    std::cout<<"设置相机rtsp流相关成功."<<std::endl;	
 if(!setWDRswitch_level(new_ip,LDCSwitch,WDRSwitch,WDRLevel))
 {
 	std::cout<<"设置相机校正状态 宽动态失败."<<std::endl;
@@ -131,7 +167,8 @@ else
 
 
 int main(int argc, char *argv[])
-{
+{   
+    load_settings();
     curLDClevel=LDCLevel;
     if(argc>1)
     {
@@ -140,5 +177,6 @@ int main(int argc, char *argv[])
 	  curLDClevel=value;    
 }
     config_new_ip_camera();
+    dealloc();
     return 0;
 }

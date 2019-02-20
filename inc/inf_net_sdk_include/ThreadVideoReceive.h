@@ -1,0 +1,59 @@
+/* 
+ * Copyright (c) 2008-2018 HKVision corporation
+ * Author: fire
+ * Data: 2011.06
+ * Description: 
+ * 		   简单90端口协议接口模块
+ * 		
+ * Modify by:
+ * Date:
+ * Description: 
+ * Version: V1.0
+ * 
+ */
+
+
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "InfiStreamProtocol.h"
+#include "linuxInclude.h"
+#include "IPCNetSDK.h"
+
+
+typedef struct INF_VIDEO_STREAM_IN_PARAM
+{
+	const char *pServerAddr;			// 摄像机ip地址
+	int iAVType;				// 音视频类型，example:	DATA_VIDEO
+	int iEncoderType;			// 编码类型，example:	VIDEO_H264_MAJOR    
+}INF_VIDEO_STREAM_IN_PARAM;
+
+typedef struct tagThreadGetVideoStreamParam
+{
+	int iStreamID;//通道号
+	INF_VIDEO_STREAM_IN_PARAM pThreadParam; /**< 码流类型，0-主码流，1-子码流 */
+	CBRealData CallBack; 
+	void * pUserData; /**< 编码类型 */
+}ThreadGetVideoStreamParam;
+
+
+void * ThreadGetVideoStream(void * arg);
+
+BOOL StopGetVideoStream();
+
+BOOL GetVideoDataEnd(int iSocket);
+
+void *ThreadGetRealPlayStream(void *arg);
+
+BOOL StartGetRealPlayStream(INTER_STREAM_IN_PARAM *pInParam,CBRealData fRealData,void *pUserData);
+
+BOOL SetMDScopeFun(int iSocket,MD_Scope_Info *scope);
+
+BOOL GetMDScopeFun(int iSocket,int *format,MD_Scope_Info *scope);
+
+#ifdef __cplusplus
+}
+#endif

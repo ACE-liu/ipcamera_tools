@@ -1,0 +1,91 @@
+# This file is used to ignore files which are generated
+# ----------------------------------------------------------------------------
+
+*~
+*.bak
+*.xml.usr
+*.autosave
+*.core
+*.moc
+*.o
+*.obj
+*.orig
+*.rej
+#*.so.*
+*_pch.h.cpp
+*_resource.rc
+*.qm
+.#*
+*.*#
+core
+!core/
+tags
+.DS_Store
+.directory
+*.debug
+Makefile*
+*.prl
+*.app
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+Thumbs.db
+*.res
+*.rc
+/.qmake.cache
+/.qmake.stash
+
+*.cbp
+*.mdl
+# qtcreator generated files
+*.pro.user*
+
+# xemacs temporary files
+*.flc
+
+# Vim temporary files
+.*.swp
+
+# Visual Studio generated files
+*.ib_pdb_index
+*.idb
+*.ilk
+*.pdb
+*.sln
+*.suo
+*.vcproj
+*vcproj.*.*.user
+*.ncb
+*.sdf
+*.opensdf
+*.vcxproj
+*vcxproj.*
+
+# MinGW generated files
+*.Debug
+*.Release
+
+# Python byte code
+*.pyc
+
+# Binaries
+# --------
+*.dll
+*.exe
+#proto
+*.pb.h
+*.pb.cc
+
+CMakeLists.txt.user*
+doc/
+recognition/models/
+detection/models/
+detection_ssd/models/
+landmark/models/
+landmark_mtcnn/models/
+auxiliary_detection/models/
+detection_rcnn_vgg/models/
+build*/
+nonfacial/models/
+*/models/
+execution/text2speech/tts.wav

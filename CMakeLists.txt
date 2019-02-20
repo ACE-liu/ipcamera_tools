@@ -37,8 +37,8 @@ add_executable(${prj_name}update main_update.cpp ip_cam_CGI.cpp ipcam_settings.c
 target_link_libraries(${prj_name}update ${head_libs} curl xml2)
 
 
-add_executable(bin_update main_bin_update.cpp)
-target_link_libraries(bin_update curl)
+add_executable(bin_update main_bin_update.cpp ip_cam_CGI.cpp)
+target_link_libraries(bin_update curl xml2)
 
 
 add_executable(camera_msg main_msg.cpp ip_cam_CGI.cpp)

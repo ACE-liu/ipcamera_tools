@@ -57,7 +57,7 @@ typedef struct
 	int BitType;
 	int FrameRate;
 	int IPRate;
-	int Payload;
+	int Payload; /*0 --h264 1--h265*/
 	int StreamRateCut;
 	int VideoQuality;
 	std::string Resolution;

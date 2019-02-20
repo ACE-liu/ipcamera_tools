@@ -2,6 +2,8 @@
 #include <string>
 #include <curl/curl.h>
 #include <iostream>
+#include "include/ip_cam_CGI.h"
+#include <unistd.h>
 
 
 #define GET_MSG 1
@@ -134,6 +136,7 @@ bool post_killapp(const std::string &url)
 	 return false; 
     }
     curl_easy_setopt(curl,CURLOPT_TCP_KEEPALIVE,1);
+     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2);
     char host_str[64]={0};
     char origin[64]={0};
     char referer[128]={0};
@@ -215,7 +218,7 @@ bool update_bin(const std::string &url,const std::string &binName)
    // curl_easy_setopt(curl, CURLOPT_TIMEOUT, 0); 
       //curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
     curl_easy_setopt(curl,CURLOPT_TCP_KEEPALIVE,1);
-      
+       curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2);
     char host_str[64]={0};
     char origin[64]={0};
     char referer[128]={0};
@@ -282,7 +285,6 @@ bool findip=false,findfile=false,get_file=false;
 for(int i =1;i<argc;++i)
 {
    cur_arg=argv[i];
-   std::cout<<cur_arg<<std::endl;
    if(findip&&cur_arg!="-f")
    {
      ip=cur_arg;   
@@ -311,6 +313,8 @@ if(!get_file)
    std::cout<<"未输入固件文件路径，升级失败."<<std::endl;
    return -1;
 }
+
+std::cout<<"ip: "<<ip<<"\nfile: "<<fileName<<std::endl;
 //  std::string url="http://192.168.10.18";
  // std::string url="http://192.168.10.18/browse/settings/sysInfC.asp?_=1548319075062";
   std::string url="http://"+ip+"/form/upload";
@@ -333,11 +337,13 @@ else
     std::cout <<"file is not a bin file."<<std::endl;
     return -1;
 }
+std::cout <<"固件升级中，请等待..."<<std::endl;
  if(update_bin(url,fileName)) 
 	 std::cout <<"update success."<<std::endl;
  else
  {
 	 std::cout <<"update failed."<<std::endl;
+	 sleep(2);
 	 return -1;
  }
  
@@ -346,5 +352,12 @@ else
   get_msg_bin("http://"+ip+"/cgi/modeCallStatus?_=1550476910089",true);
   get_msg_bin("http://"+ip+"/cgi/GetCameraTime?_=1550476911115",false);
 #endif
+  std::cout<<"固件上传成功！ 请等待..."<<std::endl;
+  sleep(120);
+  std::cout<<"升级结束，新的固件版本信息:"<<std::endl;
+  iim_ego::capturer::IPcam_CGI::getDeviceInfo(ip);
+  sleep(8);
+  std::cout<<"退出..."<<std::endl;
+  sleep(5);
  return 0;
 }

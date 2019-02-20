@@ -102,7 +102,9 @@ std::ostream& operator<<(std::ostream& os, const ipcam_settings& data)
      os << "时间显示开关: " <<data.timestatus<< std::endl;
     os << "i帧p帧比率: " <<data.iprate<< std::endl;
      os << "图像分辨率: " <<data.resolution<< std::endl;
-    os << "rtsp流编码格式: " <<data.payload<< std::endl;
+    os << "rtsp流编码格式: ";
+    std::string type=data.payload==0?"h264":"h265";
+    os<<type<<std::endl;
     os<<"====================================================="<<std::endl;
      return os;
 }

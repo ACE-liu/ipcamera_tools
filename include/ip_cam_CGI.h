@@ -75,6 +75,16 @@ typedef struct
 	int TimeOSDStatus;
 }CGICamOSDInfo;
 
+
+typedef struct
+{
+   int HttpPort;
+   int VideoPort;
+   int RtspPort;
+   int OnvifPort;
+   int RecordPort;
+}CGINetPortInfo;
+
 class IPcam_CGI
 {
 public:
@@ -85,7 +95,10 @@ public:
     static bool getStreamInfoMsg(const std::string &ipaddr,CGICamStreamInfo &info);
     static bool setStreamInfoMsg(const std::string &ipaddr,const CGICamStreamInfo& info, const int nSelect[8]);
     
-    static bool getDeviceInfo(std::string const& ipaddr);
+    static bool getPortMsg(const std::string &ipaddr,const int port,CGINetPortInfo &info);
+    static bool setPortMsg(const std::string &ipaddr,const int port,const CGINetPortInfo &info,const int nSelect[5]);
+    
+    static bool getDeviceInfo(std::string const& ipaddr,int port=80);
     
     static bool getCamOSDInfo(const std::string &ipaddr,CGICamOSDInfo &info);
     static bool setCamOSDInfo(const std::string &ipaddr,const CGICamOSDInfo& info,const int nSelect[7]);
@@ -94,6 +107,9 @@ public:
     static void log_params(const CGICamBasicInfo& basicinfo);
     static void log_params(const CGICamExposureInfo& cgiInfo);
     static void log_params(const CGICamStreamInfo& streamInfo);
+    static void log_params(const CGINetPortInfo& Info);
+    
+    static bool set_defaultPortMsg(const std::string &ipaddr,const int port);
 	
 private:
    static size_t OnWriteData(void* buffer, size_t size, size_t nmemb, void* lpVoid);

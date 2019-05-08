@@ -1,9 +1,10 @@
 #include "include/ip_cam_CGI.h"
 #include <string.h>
 #include "include/ipcam_settings.h"
+#include <unistd.h>
 
 
-static ipcam_settings *settings=NULL;
+// static ipcam_settings *settings=NULL;
 namespace
 {
     char new_ip[64]="192.168.10.18";
@@ -12,7 +13,7 @@ namespace
     int scenceSelect=1;
     int FrameRate=15;
     int WDRSwitch=1; //kuandongtai
-    int WDRLevel=50;
+    int WDRLevel=80;
     int LDCSwitch=1; //jibianjiaozheng
      int LDCLevel=50;
      int textstatus=0;
@@ -20,36 +21,36 @@ namespace
     
      int iprate=10;
      std::string resolution ="1280x720";
-     int payload =1;
+     int payload =0;
 }
 
-static void load_settings()
-{
-   std::cout<<"before: "<<new_ip<<" "<<gateway<<std::endl;
-   std::string fileName="./ipcamera_cfg.xml";
-   settings=new ipcam_settings(fileName);
-   strcpy(new_ip,settings->new_ip.c_str());
-   strcpy(gateway,settings->gateway.c_str());
-   exposureMode=settings->exposureMode;
-   scenceSelect=settings->scenceSelect;
-   FrameRate=settings->FrameRate;
-   WDRSwitch=settings->WDRSwitch;
-   WDRLevel=settings->WDRLevel;
-   LDCSwitch=settings->LDCSwitch;
-   LDCLevel=settings->LDCLevel;
-   textstatus=settings->textstatus;
-   timestatus=settings->timestatus;
-   iprate=settings->iprate;
-   resolution=settings->resolution;
-   payload=settings->payload;
-}
+// static void load_settings()
+// {
+//    std::cout<<"before: "<<new_ip<<" "<<gateway<<std::endl;
+//    std::string fileName="./ipcamera_cfg.xml";
+//    settings=new ipcam_settings(fileName);
+//    strcpy(new_ip,settings->new_ip.c_str());
+//    strcpy(gateway,settings->gateway.c_str());
+//    exposureMode=settings->exposureMode;
+//    scenceSelect=settings->scenceSelect;
+//    FrameRate=settings->FrameRate;
+//    WDRSwitch=settings->WDRSwitch;
+//    WDRLevel=settings->WDRLevel;
+//    LDCSwitch=settings->LDCSwitch;
+//    LDCLevel=settings->LDCLevel;
+//    textstatus=settings->textstatus;
+//    timestatus=settings->timestatus;
+//    iprate=settings->iprate;
+//    resolution=settings->resolution;
+//    payload=settings->payload;
+// }
 static void dealloc()
 {
- if(settings!=NULL)
- {
-    delete settings;
-    settings=NULL;
-}
+//  if(settings!=NULL)
+//  {
+//     delete settings;
+//     settings=NULL;
+// }
 }
 
 static bool set_expos_ScenceSelect(const char *ipaddr,int exposureMode, int scenceSelect)
@@ -163,12 +164,35 @@ else
    return ret;
 }
 
+static void log_camera_msg()
+{
+   iim_ego::capturer::CGICamExposureInfo exposureInfo;
+    iim_ego::capturer::CGICamBasicInfo basicInfo;
+    iim_ego::capturer::CGICamStreamInfo streamInfo;
+     iim_ego::capturer::CGICamOSDInfo osdInfo;
 
+    if(iim_ego::capturer::IPcam_CGI::getExposureMsg(new_ip,exposureInfo))
+        iim_ego::capturer::IPcam_CGI::log_params(exposureInfo);
+    else
+	std::cout<<"获取相机曝光信息失败，请检查相机是否接好..."<<std::endl;
+    
+    if(iim_ego::capturer::IPcam_CGI::getStreamInfoMsg(new_ip,streamInfo))
+       iim_ego::capturer::IPcam_CGI::log_params(streamInfo);
+    else
+       std::cout<<"获取相机流信息失败，请检查相机是否接好..."<<std::endl;
+     if(iim_ego::capturer::IPcam_CGI::getDynamicRange(new_ip,basicInfo))
+        iim_ego::capturer::IPcam_CGI::log_params(basicInfo);
+     else
+	std::cout<<"获取相机宽动态相关信息失败，请检查相机是否接好..."<<std::endl;
+     if(iim_ego::capturer::IPcam_CGI::getCamOSDInfo(new_ip,osdInfo))
+        iim_ego::capturer::IPcam_CGI::log_params(osdInfo);
+     iim_ego::capturer::IPcam_CGI::getDeviceInfo(new_ip);
+}
 
 
 int main(int argc, char *argv[])
 {   
-    load_settings();
+//     load_settings();
     curLDClevel=LDCLevel;
     if(argc>1)
     {
@@ -176,7 +200,15 @@ int main(int argc, char *argv[])
       if(value>=0&&value<=255)
 	  curLDClevel=value;    
 }
-    config_new_ip_camera();
+    if(config_new_ip_camera())
+       std::cout<<"配置成功...."<<std::endl;
+    else
+       std::cout<<"配置失败...."<<std::endl;
+    sleep(5);
+    log_camera_msg();
+    sleep(3);
+    std::cout<<"退出..."<<std::endl;
+    sleep(3);
     dealloc();
     return 0;
 }

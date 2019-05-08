@@ -20,6 +20,7 @@ static void log_camera_msg()
     iim_ego::capturer::CGICamBasicInfo basicInfo;
     iim_ego::capturer::CGICamStreamInfo streamInfo;
      iim_ego::capturer::CGICamOSDInfo osdInfo;
+
     if(iim_ego::capturer::IPcam_CGI::getExposureMsg(new_ip,exposureInfo))
         iim_ego::capturer::IPcam_CGI::log_params(exposureInfo);
     else

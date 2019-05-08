@@ -20,7 +20,7 @@ public:
      int scenceSelect=1;
      int FrameRate=15;
      int WDRSwitch=1; //kuandongtai
-     int WDRLevel=50;
+     int WDRLevel=80;
      int LDCSwitch=1; //jibianjiaozheng
      int LDCLevel=50;
     

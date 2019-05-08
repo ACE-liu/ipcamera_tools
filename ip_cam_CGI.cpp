@@ -129,6 +129,85 @@ bool iim_ego::capturer::IPcam_CGI::getCamOSDInfo(const std::string& ipaddr, iim_
     return xmlParseCameraMsg(data,"OSDInfo",true,(void*)&info);
 }
 
+bool iim_ego::capturer::IPcam_CGI::getPortMsg(const std::string& ipaddr, const int port, iim_ego::capturer::CGINetPortInfo& info)
+{
+   if(ipaddr.empty())
+      return false;
+   std::string data;
+   std::string url ="http://"+ipaddr+":"+std::to_string(port)+"/cgi/netport_get?Channel=1&Group=NetPortInfo";
+   bool ret=http_get_xmldata(url, data);
+    if(!ret)
+    {
+//       (*logstream)(IIM_INFO) <<"http get failed."<<std::endl;
+//       logstream->flush();
+      return false;
+    }
+    return xmlParseCameraMsg(data,"NetPortInfo",true,(void*)&info);
+}
+
+bool iim_ego::capturer::IPcam_CGI::set_defaultPortMsg(const std::string& ipaddr, const int port)
+{
+   iim_ego::capturer::CGINetPortInfo info;
+   int nselect[5]={1,1,1,1,1};
+   info.HttpPort=80;
+   info.OnvifPort=8999;
+   info.RecordPort=8088;
+   info.RtspPort=554;
+   info.VideoPort=90;
+  return setPortMsg(ipaddr,port,info,nselect);
+}
+
+
+bool iim_ego::capturer::IPcam_CGI::setPortMsg(const std::string& ipaddr, const int port, const iim_ego::capturer::CGINetPortInfo& info, const int nSelect[5])
+{
+   if(ipaddr.empty())
+      return false;
+   std::string data;
+   std::string url ="http://"+ipaddr+":"+std::to_string(port)+"/cgi/netport_set?Channel=1&Group=NetPortInfo";
+    if(nSelect[0]==1)
+   {
+     url.append("&HttpPort=");
+     url+=std::to_string(info.HttpPort);    
+   }
+   if(nSelect[1]==1)
+   {
+     url.append("&VideoPort=");
+     url+=std::to_string(info.VideoPort);    
+   }
+      if(nSelect[2]==1)
+   {
+     url.append("&RtspPort=");
+     url+=std::to_string(info.RtspPort);    
+   }
+      if(nSelect[3]==1)
+   {
+     url.append("&OnvifPort=");
+     url+=std::to_string(info.OnvifPort);    
+   }
+      if(nSelect[4]==1)
+   {
+     url.append("&RecordPort=");
+     url+=std::to_string(info.RecordPort);    
+   }  
+   
+   bool ret=http_get_xmldata(url, data);
+    if(!ret)
+    {
+//       (*logstream)(IIM_INFO) <<"http get failed."<<std::endl;
+//       logstream->flush();
+      return false;
+    }
+     if(!xmlParseCameraMsg(data,"NetPortInfo",false,NULL))
+    {
+         std::cout<<"set NetPortInfo failed: "<<std::endl;
+// 	 logstream->flush();
+	 return false;
+    }
+//     else 
+//         std::cout<<"set NetPortInfo success."<<std::endl;
+    return true;
+}
+
 bool iim_ego::capturer::IPcam_CGI::setCamOSDInfo(const std::string& ipaddr, const iim_ego::capturer::CGICamOSDInfo& info, const int nSelect[7])
 {
    if(ipaddr.empty())
@@ -204,12 +283,12 @@ bool iim_ego::capturer::IPcam_CGI::getExposureMsg(const std::string& ipaddr, CGI
     return xmlParseCameraMsg(data,"ExposureInfo",true,(void*)&info);
 }
 
-bool iim_ego::capturer::IPcam_CGI::getDeviceInfo(const std::__cxx11::string& ipaddr)
+bool iim_ego::capturer::IPcam_CGI::getDeviceInfo(const std::__cxx11::string& ipaddr,int port)
 {
    if(ipaddr.empty())
       return false;
    std::string data;
-   std::string url ="http://"+ipaddr+"/cgi/sys_get?Group=DeviceInfo";
+   std::string url ="http://"+ipaddr+":"+std::to_string(port)+"/cgi/sys_get?Group=DeviceInfo";
    bool ret=http_get_xmldata(url, data);
     if(!ret)
     {
@@ -686,6 +765,39 @@ bool iim_ego::capturer::IPcam_CGI::getDetailMegByNode(xmlNodePtr& node, const st
 	   node=node->next; 
 	}
 }
+      else if(typeString=="NetPortInfo")
+      {
+	 CGINetPortInfo *data =static_cast<CGINetPortInfo*>(info);    
+       while(node!=NULL)
+        {
+	  if(xmlStrcasecmp(node->name,BAD_CAST"HttpPort")==0)
+	  {
+	      con=xmlNodeGetContent(node);
+	      data->HttpPort= atoi(reinterpret_cast<char *>(con));
+	  }
+	  else if(xmlStrcasecmp(node->name,BAD_CAST"VideoPort")==0)
+	  {
+	      con=xmlNodeGetContent(node);
+	      data->VideoPort= atoi(reinterpret_cast<char *>(con));
+	  }
+	  else if(xmlStrcasecmp(node->name,BAD_CAST"RtspPort")==0)
+	  {
+	      con=xmlNodeGetContent(node);
+	      data->RtspPort= atoi(reinterpret_cast<char *>(con));
+	  }
+	  else if(xmlStrcasecmp(node->name,BAD_CAST"OnvifPort")==0)
+	  {
+	      con=xmlNodeGetContent(node);
+	      data->OnvifPort= atoi(reinterpret_cast<char *>(con));
+	  }
+	  else if(xmlStrcasecmp(node->name,BAD_CAST"RecordPort")==0)
+	  {
+	      con=xmlNodeGetContent(node);
+	      data->RecordPort= atoi(reinterpret_cast<char *>(con));
+	  }
+	   node=node->next; 
+	}
+}
       return true;
 }
 
@@ -709,6 +821,7 @@ bool iim_ego::capturer::IPcam_CGI::http_get_xmldata(const std::string& url, std:
         {  
 //            (*logstream)(IIM_INFO) << " Failed to set URL "  << std::endl;  
 // 	   logstream->flush();
+		curl_easy_cleanup(curl);
             return false;  
         }
         code = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);  
@@ -716,6 +829,7 @@ bool iim_ego::capturer::IPcam_CGI::http_get_xmldata(const std::string& url, std:
        {  
 //           (*logstream)(IIM_INFO) << " Failed to set redirect option "  << std::endl;  
 // 	  logstream->flush();
+	       curl_easy_cleanup(curl);
           return false;  
        }
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, OnWriteData); 
@@ -725,6 +839,7 @@ bool iim_ego::capturer::IPcam_CGI::http_get_xmldata(const std::string& url, std:
     {
 // 	 (*logstream)(IIM_INFO)<<"curl init failed ."<<std::endl;
 // 	 logstream->flush();
+	 curl_easy_cleanup(curl);
 	 return false; 
     }
     
@@ -737,12 +852,22 @@ bool iim_ego::capturer::IPcam_CGI::http_get_xmldata(const std::string& url, std:
  
     code = curl_easy_perform(curl);  
     if (code != CURLE_OK)  
-    {         
+    {  
+	curl_easy_cleanup(curl);
         return false;  
     }  
     curl_easy_cleanup(curl);  
       
     return true;  
+}
+
+void iim_ego::capturer::IPcam_CGI::log_params(const iim_ego::capturer::CGINetPortInfo& Info)
+{
+  printf("======== HttpPort = %d \n",Info.HttpPort);
+  printf("======== OnvifPort = %d \n",Info.OnvifPort);	
+  printf("======== RecordPort = %d \n",Info.RecordPort);
+  printf("======== RtspPort = %d \n",Info.RtspPort);
+  printf("======== VideoPort = %d \n",Info.VideoPort);
 }
 
 void iim_ego::capturer::IPcam_CGI::log_params(const iim_ego::capturer::CGICamOSDInfo& OSDinfo)

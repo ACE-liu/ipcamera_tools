@@ -90,7 +90,8 @@ bool get_msg_bin(std::string const& url,bool status)
     code = curl_easy_perform(curl);  
     std::cout <<"response:\n"<<response<<std::endl;
     if (code != CURLE_OK)  
-    {         
+    {   
+	 curl_easy_cleanup(curl);  
         return false;  
     }  
     curl_easy_cleanup(curl);  
@@ -160,11 +161,12 @@ bool post_killapp(const std::string &url)
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response); 
 
       curl_easy_setopt(curl, CURLOPT_POST, 1); 
-
+      std::cout <<"at kill form ....beform perform"<<std::endl;
        code = curl_easy_perform(curl);  
     std::cout <<"response:\n"<<response<<std::endl;
     if (code != CURLE_OK)  
-    {         
+    {  
+	 curl_easy_cleanup(curl);  
         return false;  
     }  
     curl_easy_cleanup(curl);  
@@ -261,7 +263,8 @@ bool update_bin(const std::string &url,const std::string &binName)
     code = curl_easy_perform(curl);  
     std::cout <<"response:\n"<<response<<std::endl;
     if (code != CURLE_OK)  
-    {         
+    { 
+	 curl_easy_cleanup(curl);
         return false;  
     }  
     curl_easy_cleanup(curl);  
@@ -269,35 +272,49 @@ bool update_bin(const std::string &url,const std::string &binName)
     return true;   
 }
 
+const static int http_port =80;
 
 int main(int argc, char **argv)
 {
+
    std::string fileName;
    if(argc<=1)
    {
 	std::cout<<"-i ipaddr  输入相机的ip地址，默认192.168.10.18\n"
-	         <<"-f fileName 输出需要升级的.bin或.ifu文件的路径"
+	         <<"-f fileName 输出需要升级的.bin或.ifu文件的路径\n"
+		 <<"-p port 输出相机http端口，默认80"
 		 <<std::endl;
 	return -1;
 }
 std::string cur_arg;
-bool findip=false,findfile=false,get_file=false;
+
+int port =80;
+bool findip=false,findfile=false,get_file=false,findport=false;;
 for(int i =1;i<argc;++i)
 {
    cur_arg=argv[i];
-   if(findip&&cur_arg!="-f")
+   if(findip&&cur_arg!="-f"&&cur_arg!="-p")
    {
-     ip=cur_arg;   
+     ip=cur_arg; 
+     findip=false;
      continue;
 }
-   else if(findfile&&cur_arg!="-i")
+   else if(findfile&&cur_arg!="-i"&&cur_arg!="-p")
    {
       fileName=cur_arg;
       get_file=true;
+      findfile=false;
+      continue;
+}
+   else if(findport&&cur_arg!="-i"&&cur_arg!="-f")
+   {
+      port=atoi(cur_arg.c_str());
+      findport=false;
       continue;
 }
 findip=false;
 findfile=false; 
+findport=false;
    if(cur_arg=="-i")
    {
     findip=true;
@@ -305,6 +322,10 @@ findfile=false;
 else if(cur_arg=="-f")
 {
    findfile=true;	
+}
+else if(cur_arg=="-p")
+{
+   findport=true;	
 }
 }
 
@@ -314,10 +335,12 @@ if(!get_file)
    return -1;
 }
 
-std::cout<<"ip: "<<ip<<"\nfile: "<<fileName<<std::endl;
+std::cout<<"ip: "<<ip<<"\nfile: "<<fileName<<"\nport: "<<port<<std::endl;
+
+ 
 //  std::string url="http://192.168.10.18";
  // std::string url="http://192.168.10.18/browse/settings/sysInfC.asp?_=1548319075062";
-  std::string url="http://"+ip+"/form/upload";
+  std::string url="http://"+ip+":"+std::to_string(port)+"/form/upload";
 //  std::string url="http://192.168.10.18/browse/index.asp?id=1548831083055";
 // std::string url ="127.0.0.1"
   std::string substr =fileName.substr(fileName.size()-4);
@@ -328,8 +351,9 @@ std::cout<<"ip: "<<ip<<"\nfile: "<<fileName<<std::endl;
 }
 else if(substr==".ifu")
 {
+   std::cout<<"at form kill app form"<<std::endl;
     up_file_type=IS_IFU;
-   std::string url1="http://"+ip+"/form/killAppForm";
+   std::string url1="http://"+ip+":"+std::to_string(port)+"/form/killAppForm";
    post_killapp(url1);
 }
 else
@@ -348,15 +372,21 @@ std::cout <<"固件升级中，请等待..."<<std::endl;
  }
  
 #if GET_MSG
-  get_msg_bin("http://"+ip+"/cgi/GetCameraTime?_=1550476909583",true);
-  get_msg_bin("http://"+ip+"/cgi/modeCallStatus?_=1550476910089",true);
-  get_msg_bin("http://"+ip+"/cgi/GetCameraTime?_=1550476911115",false);
+  get_msg_bin("http://"+ip+":"+std::to_string(port)+"/cgi/GetCameraTime?_=1550476909583",true);
+  get_msg_bin("http://"+ip+":"+std::to_string(port)+"/cgi/modeCallStatus?_=1550476910089",true);
+  get_msg_bin("http://"+ip+":"+std::to_string(port)+"/cgi/GetCameraTime?_=1550476911115",false);
 #endif
   std::cout<<"固件上传成功！ 请等待..."<<std::endl;
-  sleep(120);
+  sleep(130);
   std::cout<<"升级结束，新的固件版本信息:"<<std::endl;
-  iim_ego::capturer::IPcam_CGI::getDeviceInfo(ip);
+  iim_ego::capturer::IPcam_CGI::getDeviceInfo(ip,port);
   sleep(8);
+  if(port!=80)
+  {
+     iim_ego::capturer::IPcam_CGI::set_defaultPortMsg(ip,port);
+  }
+ std::cout<<"设置端口完成,请将相机断电重启再使用...."<<std::endl;
+ sleep(3);
   std::cout<<"退出..."<<std::endl;
   sleep(5);
  return 0;
